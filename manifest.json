@@ -1,19 +1,30 @@
 {
   "manifest_version": 3,
-  "name": "Your Extension",
+  "name": "Wise.ai",
   "version": "1.0",
+  "description": "Transcribes your Google meetings for Wise.ai development",
   "permissions": ["scripting"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "wise-logo.png",
+      "32": "wise-logo.png"
+    }
   },
   "content_scripts": [
     {
       "matches": ["*://meet.google.com/*"],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "icons": {
+    "16": "wise-logo.png",
+    "32": "wise-logo.png",
+    "48": "wise-logo.png",
+    "128": "wise-logo.png"
+  }
 }
