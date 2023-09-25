@@ -2,7 +2,7 @@ let dataBuffer = []; // Array to store received data for 30 seconds
 let toBeSentStack = []; // Queue to hold data waiting to be sent to the server
 
 // Function to send data to the server
-function sendDataToServer(data) {
+async function sendDataToServer(data) {
     // Simulate a POST request to the server (replace with your actual code)
     // You can use fetch or any other HTTP library for this purpose
     console.log("Sending data to server:", data);
@@ -14,6 +14,9 @@ function sendDataToServer(data) {
             },
             body: JSON.stringify(data),
         });
+        console.log("Server confirmed receipt of data:", response);} catch (error) {
+        console.error(error);
+    }
 
     // Simulate a successful response for demonstration purposes
     setTimeout(() => {
