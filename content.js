@@ -38,8 +38,10 @@ const transcriptObserver = new MutationObserver((mutations) => {
         lastConvo = script.shift();
         last_speaker = '';
         if (lastConvo){
-          console.log({ "URL":document.URL, 'Time' : new Date().getTime(), "Conversation": lastConvo });
-          chrome.runtime.sendMessage({ "URL":document.URL, 'Time' : new Date().getTime(), "Conversation": lastConvo });
+          lastConvo['Time'] = new Date().getTime();
+
+          console.log({ "URL":document.URL, "Conversation": lastConvo });
+          chrome.runtime.sendMessage({ "URL":document.URL, "Conversation": lastConvo });
         }
       } 
     }
