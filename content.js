@@ -78,8 +78,7 @@ const divObserver = new MutationObserver(() => {
     // Start observing transcript changes
     transcriptObserver.observe(captionDiv, config);
 
-    //uncomment to hide cc div
-    //targetNode.parentNode.parentNode.style.height = '1px'
+    captionDiv.parentNode.parentNode.style.height = '1px'
   } else {
     console.log('ccButton not found');
   }
