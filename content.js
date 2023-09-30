@@ -4,6 +4,7 @@ let script = [];
 // Initialize variables to keep track of the last span and speaker
 let last_span = '';
 let last_speaker = '';
+let isRunning = false;
 
 // Create a MutationObserver instance for transcript changes
 const transcriptObserver = new MutationObserver((mutations) => {
@@ -19,11 +20,11 @@ const transcriptObserver = new MutationObserver((mutations) => {
           setTimeout(function () {
             if (newNodes.length) {
               if (last_speaker !== speaker) {
-                script.push({'speaker':speaker, "script": newNodes["0"].innerText + "\r\n"});
+                script.push({ 'speaker': speaker, "script": newNodes["0"].innerText + "\r\n" });
                 last_speaker = speaker;
               } else {
                 var lastText = script.pop();
-                lastText['script']  = lastText['script'] + newNodes["0"].innerText + "\r\n";
+                lastText['script'] = lastText['script'] + newNodes["0"].innerText + "\r\n";
                 script.push(lastText);
               }
             }
@@ -34,18 +35,19 @@ const transcriptObserver = new MutationObserver((mutations) => {
 
     // Check for removed nodes
     for (const oldNode of mutation.removedNodes) {
-      if (oldNode?.classList?.value==='TBMuR bj4p3b');{
+      if (oldNode?.classList?.value === 'TBMuR bj4p3b') {
         lastConvo = script.shift();
         last_speaker = '';
-        if (lastConvo){
+        if (lastConvo) {
           lastConvo['Time'] = new Date().getTime();
 
-          console.log({ "URL":document.URL, "Conversation": lastConvo });
+          console.log({ "URL": document.URL, "Conversation": lastConvo });
           chrome.runtime.sendMessage({
-            "URL":document.URL.includes('?') ? document.URL.split('?')[0] : document.URL;,
-           "Conversation": lastConvo });
+            "URL": document.URL.includes('?') ? document.URL.split('?')[0] : document.URL,
+            "Conversation": lastConvo
+          });
         }
-      } 
+      }
     }
   });
 });
@@ -54,7 +56,7 @@ const transcriptObserver = new MutationObserver((mutations) => {
 const divObserver = new MutationObserver(() => {
   // XPath to find the closed caption button
   const ccButtonXpath = '//button[@jsname="r8qRAd"]';
-  const result = document.evaluate(ccButtonXpath , document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+  const result = document.evaluate(ccButtonXpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
   const ccButton = result.singleNodeValue;
 
   if (ccButton) {
@@ -64,7 +66,7 @@ const divObserver = new MutationObserver(() => {
 
     // XPath to find the caption div
     const captionDivXpath = '//div[@class="iOzk7"]';
-    const captionDivXpathResult = document.evaluate(captionDivXpath , document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+    const captionDivXpathResult = document.evaluate(captionDivXpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
     const captionDiv = captionDivXpathResult.singleNodeValue;
 
     // Configure MutationObserver to observe caption changes
@@ -78,11 +80,10 @@ const divObserver = new MutationObserver(() => {
     // Disconnect the divObserver since it's no longer needed
     divObserver.disconnect();
     console.log('The divObserver was disconnected');
-
     // Start observing transcript changes
     transcriptObserver.observe(captionDiv, config);
 
-    captionDiv.parentNode.parentNode.style.height = '1px'
+    captionDiv.parentNode.parentNode.style.height = '1px';
   } else {
     console.log('ccButton not found');
   }
@@ -94,3 +95,16 @@ const config = { childList: true, subtree: true };
 
 // Start observing changes in the target node
 divObserver.observe(targetNode, config);
+// Send a message to background.js when the content script is loaded
+chrome.runtime.sendMessage({ from: 'content', command: 'contentScriptLoaded' });
+
+// Listen for messages from popup.js
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.command === 'popupOpened') {
+    // Handle the message from popup.js here
+    console.log('Popup opened message received in content.js');
+    
+    // Send a message to popup.js
+    chrome.runtime.sendMessage({ from: 'content', command: 'contentToPopup', data: 'Hello from content.js' });
+  }
+});

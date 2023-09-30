@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Wise.ai",
+  "name": "Inwise.ai",
   "version": "1.0",
-  "description": "Transcribes your Google meetings for Wise.ai development",
+  "description": "Transcribes your Google meetings for Inwise.ai development",
   "permissions": ["scripting"],
   "host_permissions": ["<all_urls>"],
   "background": {

@@ -1,5 +1,6 @@
 let dataBuffer = {}; // Array to store received data for 30 seconds
 let toBeSentStack = {}; // Queue to hold data waiting to be sent to the server
+let transcriptObserverStarted = false; // Track the state of the transcript observer
 
 // Function to send data to the server
 async function sendDataToServer(data) {
@@ -30,14 +31,21 @@ async function sendDataToServer(data) {
 }
 
 // Receive the mutation data sent from the content script
-chrome.runtime.onMessage.addListener((mutationData) => {
-    // Push the received data to the buffer array
-    if (!dataBuffer.hasOwnProperty(mutationData['URL'])) {
-        dataBuffer[mutationData['URL']] = [];
-      }
-    dataBuffer[mutationData['URL']].push(mutationData["Conversation"]);
-});
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.transcriptObserverStarted) {
+        transcriptObserverStarted = true;
+        chrome.runtime.sendMessage({ transcriptObserverStarted: transcriptObserverStarted });
+    }
 
+    // Push the received data to the buffer array
+    if (!dataBuffer.hasOwnProperty(message['URL'])) {
+        dataBuffer[message['URL']] = [];
+    }
+    dataBuffer[message['URL']].push(message["Conversation"]);
+});
+chrome.runtime.sendMessage({ transcriptObserverStarted: true }, function (response) {
+    console.log('Message sent to popup:', response);
+});
 // Function to queue data from dataBuffer to toBeSentStack after 30 seconds
 function queueDataAfterDelay() {
     if (Object.keys(dataBuffer).length > 0) {
@@ -60,3 +68,16 @@ function queueDataAfterDelay() {
 
 // Set an interval to queue data every 30 seconds
 setInterval(queueDataAfterDelay, 30000);
+// Send a message to background.js when the content script is loaded
+chrome.runtime.sendMessage({ from: 'content', command: 'contentScriptLoaded' });
+
+// Listen for messages from popup.js
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.command === 'popupOpened') {
+    // Handle the message from popup.js here
+    console.log('Popup opened message received in content.js');
+    
+    // Send a message to popup.js
+    chrome.runtime.sendMessage({ from: 'content', command: 'contentToPopup', data: 'Hello from content.js' });
+  }
+});
