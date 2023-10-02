@@ -17,7 +17,7 @@
 //       console.log('Transcript observer has not started. Toggles will not be enabled.');
 //     }
 //   });
-  
+
   
   document.addEventListener('DOMContentLoaded', function() {
     // Send a message to content.js when the popup is opened
@@ -30,7 +30,7 @@
       if (request.from === 'content' && request.command === 'contentToPopup') {
         // Handle the message from content.js here
         console.log('Message from content.js:', request.data);
-        document.getElementById('toggleContainer').style.display = 'flex'
+        document.getElementById('toggles').style.display = 'flex'
       }
     });
   });
