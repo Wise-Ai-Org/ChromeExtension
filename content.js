@@ -4,13 +4,13 @@ let script = [];
 // Initialize variables to keep track of the last span and speaker
 let last_span = '';
 let last_speaker = '';
-let isRunning = false;
+let isRunning = true;
 
 // Create a MutationObserver instance for transcript changes
 const transcriptObserver = new MutationObserver((mutations) => {
   mutations.forEach((mutation) => {
     // Check if the mutation is related to the transcript
-    if (mutation.target.classList && mutation.target.classList.contains('iTTPOb')) {
+    if (mutation.target.classList && mutation.target.classList.contains('iTTPOb') && isRunning) {
       if (mutation.addedNodes.length) {
         const newNodes = mutation.addedNodes;
         const speaker = newNodes[0]?.parentNode?.parentNode?.parentNode?.querySelector('.zs7s8d.jxFHg')?.textContent;
@@ -42,7 +42,7 @@ const transcriptObserver = new MutationObserver((mutations) => {
           lastConvo['Time'] = new Date().getTime();
 
           console.log({ "URL": document.URL, "Conversation": lastConvo });
-          chrome.runtime.sendMessage({
+          chrome.runtime.sendMessage({ originFile: 'content', destinationFile: 'background', command: 'sendConversation',
             "URL": document.URL.includes('?') ? document.URL.split('?')[0] : document.URL,
             "Conversation": lastConvo
           });
@@ -106,5 +106,23 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     
     // Send a message to popup.js
     chrome.runtime.sendMessage({ from: 'content', command: 'contentToPopup', data: 'Hello from content.js' });
+  }
+});
+
+// Listen for messages from popup.js
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  console.log('Message received in content.js from popup.js', request);
+  if (request.destinationFile === 'content' ) {
+    if (request.originFile === 'popup') {
+      if (request.command === 'startCaption') {
+        //enter code for caption show
+      } else if (request.command === 'stopCaption') {
+        //enter code for caption hide
+      } else if (request.command === 'startRecording') {
+        isRunning = true;
+      } else if (request.command === 'stopRecording') {
+        isRunning = false;
+      }
+    }
   }
 });

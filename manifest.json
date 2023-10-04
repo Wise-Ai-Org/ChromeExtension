@@ -3,7 +3,7 @@
   "name": "Inwise.ai",
   "version": "1.0",
   "description": "Transcribes your Google meetings for Inwise.ai development",
-  "permissions": ["scripting"],
+  "permissions": ["scripting", "storage"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
