@@ -6,6 +6,9 @@ let last_span = '';
 let last_speaker = '';
 let isRunning = true;
 
+// Create a port for communication with the background script
+var port = chrome.runtime.connect({ name: "contentToBackground" });
+
 // Create a MutationObserver instance for transcript changes
 const transcriptObserver = new MutationObserver((mutations) => {
   mutations.forEach((mutation) => {
@@ -42,7 +45,7 @@ const transcriptObserver = new MutationObserver((mutations) => {
           lastConvo['Time'] = new Date().getTime();
 
           console.log({ "URL": document.URL, "Conversation": lastConvo });
-          chrome.runtime.sendMessage({ originFile: 'content', destinationFile: 'background', command: 'sendConversation',
+          port.postMessage({ originFile: 'content', destinationFile: 'background', command: 'sendConversation',
             "URL": document.URL.includes('?') ? document.URL.split('?')[0] : document.URL,
             "Conversation": lastConvo
           });
@@ -95,6 +98,9 @@ const config = { childList: true, subtree: true };
 
 // Start observing changes in the target node
 divObserver.observe(targetNode, config);
+
+
+
 // Send a message to background.js when the content script is loaded
 chrome.runtime.sendMessage({ from: 'content', command: 'contentScriptLoaded' });
 
