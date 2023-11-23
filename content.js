@@ -5,6 +5,7 @@ let script = [];
 let last_span = '';
 let last_speaker = '';
 let isRunning = true;
+let user_name = '';
 
 // Create a port for communication with the background script
 var port = chrome.runtime.connect({ name: "contentToBackground" });
@@ -16,7 +17,10 @@ const transcriptObserver = new MutationObserver((mutations) => {
     if (mutation.target.classList && mutation.target.classList.contains('iTTPOb') && isRunning) {
       if (mutation.addedNodes.length) {
         const newNodes = mutation.addedNodes;
-        const speaker = newNodes[0]?.parentNode?.parentNode?.parentNode?.querySelector('.zs7s8d.jxFHg')?.textContent;
+        let speaker = newNodes[0]?.parentNode?.parentNode?.parentNode?.querySelector('.zs7s8d.jxFHg')?.textContent;
+        if (speaker === "You") {
+          speaker = user_name;
+        }
 
         if (speaker) {
           // Delay processing by 10 seconds to ensure full transcript is loaded
@@ -66,6 +70,22 @@ const divObserver = new MutationObserver(() => {
     // Click the closed caption button
     ccButton.click();
     console.log('ccButton found')
+
+    // Find the name of the speaker
+    const spans = document.querySelectorAll('span.zWGUib'); // Get all spans with class zWGUib
+    // Loop through each span found
+    spans.forEach(span => {
+      // Check if the sibling span has the class NnTWjc and its content is (You)
+      const siblingSpan = span.nextElementSibling; // Get the sibling span
+      if (
+        siblingSpan &&
+        siblingSpan.classList.contains('NnTWjc') &&
+        siblingSpan.textContent.trim() === '(You)'
+        ) {
+          // If the sibling span has the class NnTWjc and its content is (You), log the content of the zWGUib span
+          user_name = span.textContent;
+        }
+      });
 
     // XPath to find the caption div
     const captionDivXpath = '//div[@class="iOzk7"]';
