@@ -29,14 +29,25 @@ async function sendDataToServer(data) {
     }, 2000); // Simulating a 2-second delay for the server response
 }
 
-// Receive the mutation data sent from the content script
-chrome.runtime.onMessage.addListener((mutationData) => {
-    // Push the received data to the buffer array
-    if (!dataBuffer.hasOwnProperty(mutationData['URL'])) {
-        dataBuffer[mutationData['URL']] = [];
-      }
-    dataBuffer[mutationData['URL']].push(mutationData["Conversation"]);
-});
+// Listen for the content script to connect
+chrome.runtime.onConnect.addListener(function (port) {
+    if (port.name === "contentToBackground") {
+      // Handle messages from the content script
+      port.onMessage.addListener(function (mutationData) {
+        if (mutationData.destinationFile === 'background' ) {
+            if (mutationData.originFile === 'content') {
+                if (mutationData.command === 'sendConversation') {
+                    // Push the received data to the buffer array
+                    if (!dataBuffer.hasOwnProperty(mutationData['URL'])) {
+                        dataBuffer[mutationData['URL']] = [];
+                    }
+                    dataBuffer[mutationData['URL']].push(mutationData["Conversation"]);
+                }
+            }
+        }
+      });
+    }
+  });
 
 // Function to queue data from dataBuffer to toBeSentStack after 30 seconds
 function queueDataAfterDelay() {

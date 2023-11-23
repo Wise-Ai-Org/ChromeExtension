@@ -1,14 +1,29 @@
 <!DOCTYPE html>
 <html>
-  <div style="width:150px;">
-    <head >
-      <title>Wise.ai extension</title>
-      <script src="popup.js"></script>
-    </head>
-    <body style="align-items: center;"">
-      <img src="wise-logo.png" alt="Wise.ai logo" style="width:32px;">
-      <h3 style="text-align: center;"">Wise.ai</h3>
-      <div id="addedTextContainer"></div>
-    </body>
-  </div>
+  <head>
+    <title>Inwise.ai extension</title>
+    <script src="popup.js"></script>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body class="popup">
+    <img src="inwise-logo.png" alt="Inwise.ai logo" class="logo">
+    
+    <div class="toggleContainer">
+      <div class="toggleLabel">Recording</div>
+      <label class="switch">
+        <input type="checkbox" id="recordingToggle" checked>
+        <span class="slider round"></span>
+      </label>
+    </div>
+
+    <div class="toggleContainer">
+      <div class="toggleLabel">Show captions</div>
+      <label class="switch">
+        <input type="checkbox" id="captionsToggle">
+        <span class="slider round"></span>
+      </label>
+    </div>
+
+    <div id="addedTextContainer"></div>
+  </body>
 </html>
