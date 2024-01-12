@@ -1,34 +1,36 @@
 let dataBuffer = {}; // Array to store received data for 30 seconds
 let toBeSentStack = {}; // Queue to hold data waiting to be sent to the server
+let sendData = true;
 
 // Function to send data to the server
 async function sendDataToServer(data) {
     // Simulate a POST request to the server (replace with your actual code)
     // You can use fetch or any other HTTP library for this purpose
-
-    try {
-        const response = await fetch('https://inwise-node-functions.azurewebsites.net/api/dump_delta_transcript?code=FwBcCM4aXiYlOZVlXHb2p-GwuIg7X6pvIyPL3mCADA3NAzFu4ytNLA==', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        });
+    if (sendData) {
+        try {
+            const response = await fetch('https://inwise-node-functions.azurewebsites.net/api/dump_delta_transcript?code=FwBcCM4aXiYlOZVlXHb2p-GwuIg7X6pvIyPL3mCADA3NAzFu4ytNLA==', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
         console.log("Server confirmed receipt of data:", response);
         console.log("The data:", data);} catch (error) {
         console.error(error);
-    }
-
-    // when successful response from the server
-    setTimeout(() => {
-        console.log(toBeSentStack[data["URL"]]);
-        delete toBeSentStack[data["URL"]]; // Remove the oldest item from the queue
-        if (Object.keys(toBeSentStack).length > 0) {
-            // If there is pending data in the queue, send the next one immediately
-            const oldestUrl = Object.keys(toBeSentStack)[0];
-            sendDataToServer({ "URL": oldestUrl, "Conversation": toBeSentStack[oldestUrl] });
         }
-    }, 2000); // Simulating a 2-second delay for the server response
+        
+        // when successful response from the server
+        setTimeout(() => {
+            console.log(toBeSentStack[data["URL"]]);
+            delete toBeSentStack[data["URL"]]; // Remove the oldest item from the queue
+            if (Object.keys(toBeSentStack).length > 0) {
+                // If there is pending data in the queue, send the next one immediately
+                const oldestUrl = Object.keys(toBeSentStack)[0];
+                sendDataToServer({ "URL": oldestUrl, "Conversation": toBeSentStack[oldestUrl] });
+            }
+        }, 2000); // Simulating a 2-second delay for the server response
+    }
 }
 
 // Receive the mutation data sent from the content script
