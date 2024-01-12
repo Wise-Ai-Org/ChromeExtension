@@ -5,6 +5,7 @@ let toBeSentStack = {}; // Queue to hold data waiting to be sent to the server
 async function sendDataToServer(data) {
     // Simulate a POST request to the server (replace with your actual code)
     // You can use fetch or any other HTTP library for this purpose
+
     try {
         const response = await fetch('https://inwise-node-functions.azurewebsites.net/api/dump_delta_transcript?code=FwBcCM4aXiYlOZVlXHb2p-GwuIg7X6pvIyPL3mCADA3NAzFu4ytNLA==', {
             method: 'POST',
@@ -20,6 +21,7 @@ async function sendDataToServer(data) {
 
     // when successful response from the server
     setTimeout(() => {
+        console.log(toBeSentStack[data["URL"]]);
         delete toBeSentStack[data["URL"]]; // Remove the oldest item from the queue
         if (Object.keys(toBeSentStack).length > 0) {
             // If there is pending data in the queue, send the next one immediately
@@ -30,12 +32,13 @@ async function sendDataToServer(data) {
 }
 
 // Receive the mutation data sent from the content script
-chrome.runtime.onMessage.addListener((mutationData) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+
     // Push the received data to the buffer array
-    if (!dataBuffer.hasOwnProperty(mutationData['URL'])) {
-        dataBuffer[mutationData['URL']] = [];
-      }
-    dataBuffer[mutationData['URL']].push(mutationData["Conversation"]);
+    if (!dataBuffer.hasOwnProperty(message['URL'])) {
+        dataBuffer[message['URL']] = [];
+    }
+    dataBuffer[message['URL']].push(message["Conversation"]);
 });
 
 // Function to queue data from dataBuffer to toBeSentStack after 30 seconds
