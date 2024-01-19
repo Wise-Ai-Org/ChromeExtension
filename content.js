@@ -59,6 +59,28 @@ const transcriptObserver = new MutationObserver((mutations) => {
   });
 });
 
+// Create a MutationObserver instance for detecting when hang up button is clicked
+const meetingEndedObserver = new MutationObserver(() => {
+
+  const userNameXpath = '//div[@class="dwSJ2e"]';
+  const userNameXpathResult = document.evaluate(userNameXpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+  const userName = userNameXpathResult.singleNodeValue;
+
+  const hangUpButtonXpath = '//button[@jsname="CQylAd"]';
+  const result = document.evaluate(hangUpButtonXpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+  const hangUpButton = result.singleNodeValue;
+
+  if (userName && hangUpButton){
+    user_name = userName.textContent // do what you must
+    console.log('user name: ', user_name)
+    hangUpButton.addEventListener('click', e => { 
+      console.log('BYYYYYYYEEEEEEEEEEEEEEEEEE');
+      //chrome.runtime.sendMessage... or whatever
+    }) 
+    meetingEndedObserver.disconnect();
+  }
+});
+
 // Create a MutationObserver instance for detecting the meeting page
 const divObserver = new MutationObserver(() => {
   // XPath to find the closed caption button
@@ -119,6 +141,7 @@ const config = { childList: true, subtree: true };
 // Start observing changes in the target node
 divObserver.observe(targetNode, config);
 
+meetingEndedObserver.observe(document, config)
 
 
 // Send a message to background.js when the content script is loaded
