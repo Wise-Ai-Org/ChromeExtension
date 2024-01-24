@@ -7,11 +7,12 @@ const autoprefixer = require('autoprefixer')
 
 module.exports = {
     entry: {
+        firebase_config: './src/popup/firebase_config.ts',
         popup: path.resolve('src/popup/index.tsx'),
-        options: path.resolve('src/options/index.tsx'),
+        //options: path.resolve('src/options/index.tsx'),
         background: path.resolve('src/background/background.ts'),
         contentScript: path.resolve('src/contentScript/contentScript.ts'),
-        newTab: path.resolve('src/tabs/index.tsx'),
+        //newTab: path.resolve('src/tabs/index.tsx'),
     },
     module: {
         rules: [
@@ -59,8 +60,8 @@ module.exports = {
         }),
         ...getHtmlPlugins([
             'popup',
-            'options',
-            'newTab'
+            //'options',
+            //'newTab'
         ])
     ],
     resolve: {

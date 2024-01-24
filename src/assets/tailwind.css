@@ -2,7 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-    height: 400px;
-    width: 400px;
+body
+{ 
+    display: flex;
+    flex-direction: column;
+    width: 290px;
+    height: 263px;
+}
+.logo
+{
+    width:153px;
+    margin:auto;
+}
+
+.toggleContainer
+{
+    display: flex; 
+    flex-direction: row; 
+    height: 18px; 
+    justify-content: space-between;
 }
