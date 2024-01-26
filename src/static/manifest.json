@@ -1,0 +1,35 @@
+{
+    "manifest_version": 3,
+    "name": "Inwise.ai",
+    "description": "Transcribes your Google meetings for Inwise.ai development",
+    "version": "1.0.0",
+    "action" : {
+        "default_popup": "popup.html",
+        "default_title": "inWise.ai",
+        "default_icon" : "icon.png"
+    },
+    "oauth2": {
+        "client_id": "947755270282-htja5bge2fg1eb21oam70ajn3bc9t4ts.apps.googleusercontent.com",
+        "scopes": ["https://www.googleapis.com/auth/userinfo.email","https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/calendar.readonly"]
+      },
+    "key": "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAocZqmeu3K7tqJ0DXLARjmy6N1kc5iZsC5KrxgaH0Acu/kfCw+I+Hh2NQsVKZ+jKxrUSFzEDzsRtMqfyCMesev3r9M4j5DoUcqhs9lAb/MPGMG4rU8aa2xpderhlRbZ0npWDpykrIZ1nVygm6wm740M8PyvMCOPDWlUOi79ojLpMZb25vTV7KK4rbnPwYFYzBZyBTVttbONe+bD8Ym8ZjJV8UAhGjupc7NSfFla3VN3XlVuhIGLS+7Vx9FHHAq+kn4fFHvV+RVwFu+G/xFRwGcdmECSPz7MYmIFw3EJaXJZVCXOQFi8wOuPbjNoi9gmLLS+QfWR8GoEGkL3ovdyVrVQIDAQAB-----END PUBLIC KEY-----",
+    "permissions": [
+        "tabs",
+        "storage",
+        "identity"
+    ],
+    "icons": {
+        "16" : "icon.png",
+        "48" : "icon.png",
+        "128" : "icon.png"
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["*://meet.google.com/*"],
+            "js": ["contentScript.js"]
+        }
+    ]
+}
