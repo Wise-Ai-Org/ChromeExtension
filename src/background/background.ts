@@ -1,29 +1,47 @@
-let dataBuffer = {}; // Array to store received data for 30 seconds
-let toBeSentStack = {}; // Queue to hold data waiting to be sent to the server
+let dataBuffer = {}; // Object to store received data for 30 seconds
+let toBeSentStack = {}; // Object to hold data waiting to be sent to the server
 let isSendData = true;
 
 // Set the sendTranscriptToggle as true in chrome storage on installation
 chrome.runtime.onInstalled.addListener(() => {
     chrome.storage.sync.set({ sendTranscriptToggle: true });
 });
-    
+
 // Log the changes in the status of the variable in the chrome storage
 chrome.storage.onChanged.addListener((changes, namespace) => {
-    for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
+    for (let key in changes) {
+        let { oldValue, newValue } = changes[key];
+
         if (key === 'sendTranscriptToggle') {
             chrome.storage.sync.get('sendTranscriptToggle', (data) => {
                 isSendData = data.sendTranscriptToggle;
                 console.log('sendTranscriptToggle value changed from ' + oldValue + ' to ' + newValue);
             });
         }
+
+        // Assuming you want to handle loading changes for sign-in/sign-out logic
+        if (key === 'loading') {
+            chrome.storage.sync.get(['user', 'loading'], (data) => {
+                console.log('Loading value changed from ' + oldValue + ' to ' + newValue);
+
+                // Assuming you want to trigger sign-in logic when loading is set to true
+                if (newValue.state === true) {
+                    console.log("Inside Loading");
+                    if (newValue.command === "signOut") {
+                        console.log("Sign Out");
+                        // Assuming you want to set a dummy user for illustration
+                        chrome.storage.sync.set({ loading: { state: false, command: undefined } });
+                    } else if (newValue.command === "signIn") {
+                        console.log("Sign In");
+                        chrome.storage.sync.set({ loading: { state: false, command: undefined } });
+                        chrome.storage.sync.set({ user: { displayName: 'John Doe' } });
+                    }
+                }
+            });
+        }
     }
 });
 
-// Signin Status Change
-//chrome.identity.onSignInChanged.addListener(
-//    callback:
-//    function,
-//  )
 
 // Function to send data to the server
 async function sendDataToServer(data) {
