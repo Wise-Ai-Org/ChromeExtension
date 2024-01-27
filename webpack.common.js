@@ -7,7 +7,7 @@ const autoprefixer = require('autoprefixer')
 
 module.exports = {
     entry: {
-        firebase_config: './src/popup/firebase_config.ts',
+        firebase_config: './src/background/firebase_config.ts',
         popup: path.resolve('src/popup/index.tsx'),
         //options: path.resolve('src/options/index.tsx'),
         background: path.resolve('src/background/background.ts'),

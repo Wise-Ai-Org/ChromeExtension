@@ -32,14 +32,12 @@ const Popup = () => {
     };
 
     const signInWithGoogle = () => {
-        setUser({ displayName: "" }); // Set displayName to an empty string
         setLoading({ state: true, command: "signIn" });
         // Implement sign-in logic here
     };
 
     const signOut = () => {
         // Implement sign-out logic if needed
-        setUser({ displayName: "" }); // Set displayName to an empty string
         setLoading({ state: true, command: "signOut" });
     };
 

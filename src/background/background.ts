@@ -1,13 +1,94 @@
-let dataBuffer = {}; // Object to store received data for 30 seconds
-let toBeSentStack = {}; // Object to hold data waiting to be sent to the server
+
+import { firebaseApp, auth } from './firebase_config';
+import {
+    getAuth,
+    signInWithCredential,
+    signOut,
+    GoogleAuthProvider,
+    setPersistence,
+    browserLocalPersistence,
+} from 'firebase/auth';
+
+let dataBuffer = {};
+let toBeSentStack = {};
 let isSendData = true;
 
-// Set the sendTranscriptToggle as true in chrome storage on installation
+function signInWithGoogle() {
+    chrome.identity.getAuthToken({ 'interactive': true }, function(token) {
+        // Use the token for authentication.
+        console.log(token);
+        // You can make authenticated requests using the token here.
+        getGoogleCalendarEvents(token);
+    });
+}
+
+function getGoogleCalendarEvents(token) {
+    // Fetch the first five Google Calendar events
+    fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=5', {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Handle the retrieved calendar events
+        console.log('Calendar Events:', data.items);
+        // You can do further processing with the events here
+    })
+    .catch(error => {
+        console.error('Error fetching calendar events:', error);
+    });
+}
+
+/*
+const configureAuthPersistence = async () => {
+    try {
+        await setPersistence(auth, browserLocalPersistence);
+        console.log('Firebase authentication persistence set to LOCAL');
+    } catch (error) {
+        console.error('Error setting Firebase authentication persistence:', error);
+    }
+};
+*/
+/*
+const signInWithGoogle = () => {
+    chrome.identity.getAuthToken({ interactive: true }, token => {
+        if (chrome.runtime.lastError || !token) {
+            console.error(`SSO ended with an error: ${JSON.stringify(chrome.runtime.lastError)}`);
+            return;
+        }
+
+        /*
+        const credential = GoogleAuthProvider.credential(null, token);
+        signInWithCredential(auth, credential)
+            .then(res => {
+                console.log('signed in!');
+            })
+            .catch(err => {
+                console.error(`SSO ended with an error: ${err}`);
+            });
+        
+    });
+};
+*/
+const signOutFromGoogle = () => {
+    /*
+    signOut(auth)
+        .then(() => {
+            console.log('signed out!');
+        })
+        .catch(err => {
+            console.error(`Sign-out ended with an error: ${err}`);
+        });
+        */
+};
+
 chrome.runtime.onInstalled.addListener(() => {
     chrome.storage.sync.set({ sendTranscriptToggle: true });
+    //configureAuthPersistence(); // Configure persistence on installation
 });
 
-// Log the changes in the status of the variable in the chrome storage
 chrome.storage.onChanged.addListener((changes, namespace) => {
     for (let key in changes) {
         let { oldValue, newValue } = changes[key];
@@ -19,20 +100,19 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
             });
         }
 
-        // Assuming you want to handle loading changes for sign-in/sign-out logic
         if (key === 'loading') {
             chrome.storage.sync.get(['user', 'loading'], (data) => {
                 console.log('Loading value changed from ' + oldValue + ' to ' + newValue);
 
-                // Assuming you want to trigger sign-in logic when loading is set to true
-                if (newValue.state === true) {
-                    console.log("Inside Loading");
+                if (newValue && newValue.state === true) {
                     if (newValue.command === "signOut") {
                         console.log("Sign Out");
-                        // Assuming you want to set a dummy user for illustration
+                        //signOutFromGoogle();
                         chrome.storage.sync.set({ loading: { state: false, command: undefined } });
+                        chrome.storage.sync.set({ user: undefined });
                     } else if (newValue.command === "signIn") {
                         console.log("Sign In");
+                        signInWithGoogle();
                         chrome.storage.sync.set({ loading: { state: false, command: undefined } });
                         chrome.storage.sync.set({ user: { displayName: 'John Doe' } });
                     }
@@ -41,7 +121,6 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
         }
     }
 });
-
 
 // Function to send data to the server
 async function sendDataToServer(data) {
