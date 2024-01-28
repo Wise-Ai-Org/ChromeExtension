@@ -1,9 +1,12 @@
 /*
-The code below is for calendar intregration.
+The code below is for calendar integration.
 */
 let isSendData = true; // Flag to determine whether data should be sent
 let accessToken = undefined; // Access token for authentication
 let syncToken = null; // Token for synchronization (initially null)
+
+let userName = null;
+let userEmail = null;
 
 // Set the sendTranscriptToggle as true in chrome storage on installation
 chrome.runtime.onInstalled.addListener(() => {
@@ -34,39 +37,87 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 });
 
 // Function to perform initial synchronization
-function performInitialSync() {
+async function performInitialSync() {
     // Make the initial API request to fetch all events if accessToken is available
     if (accessToken) {
-        syncCalendar(accessToken, null);
+        await getUserProfile(accessToken);
+        syncCalendar(accessToken, null); // Change here: Use await
     }
 }
 
 // Function to sync calendar events
-function syncCalendar(accessToken, syncToken) {
+async function syncCalendar(accessToken, syncToken) { // Change here: Added async
     // Proceed with synchronization only if accessToken is available
     if (accessToken) {
         let apiUrl = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
-        
+
         // Append syncToken to the API URL if available
         if (syncToken) {
             apiUrl += `?syncToken=${encodeURIComponent(syncToken)}`;
         }
-        
+
         // Fetch calendar events using the API
-        fetch(apiUrl, {
-            headers: {
-                'Authorization': 'Bearer ' + accessToken,
-            },
-        }).then(response => response.json()).then(data => {
+        try { // Change here: Added try-catch
+            const response = await fetch(apiUrl, {
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken,
+                },
+            });
+            const data = await response.json();
             console.log('Initial Sync Response:', data.items);
-            
+
+            const postData = {
+                name: userName,
+                email: userEmail,
+                events: data.items
+            };
+
+            const serverResponse = await fetch('https://inwise-node-functions.azurewebsites.net/api/dump_delta_calender?code=WLi2K62GK_RhcehvcqbfaoEtP8IhGKdWQ8jus09uDrHEAzFuYgZDSw==', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(postData),
+            });
+
+            console.log("Server confirmed receipt of data:", serverResponse);
+            console.log("The data:", data);
+
             // Extract and store the new syncToken for future use
             const newSyncToken = data.nextSyncToken;
             if (newSyncToken) {
                 chrome.storage.sync.set({ 'syncToken': newSyncToken });
             }
-            
+
             // Handle the initial sync data as needed
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+}
+
+// Function to get user profile information
+function getUserProfile(accessToken) {
+    // Proceed only if accessToken is available
+    if (accessToken) {
+        // Define the API endpoint for fetching user profile information
+        let apiUrl = 'https://www.googleapis.com/oauth2/v2/userinfo';
+
+        // Fetch user profile information using the API
+        fetch(apiUrl, {
+            headers: {
+                'Authorization': 'Bearer ' + accessToken,
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Log user profile information to the console
+            console.log('Email:', data.email);
+            console.log('Name:', data.name);
+            userName = data.name;
+            userEmail = data.email;
+
+            // Handle the profile information as needed
         }).catch(error => console.error('Error:', error));
     }
 }
