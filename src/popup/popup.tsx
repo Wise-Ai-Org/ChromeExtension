@@ -8,7 +8,7 @@ import {
     browserLocalPersistence,
 } from 'firebase/auth';
 
-const Popup = () => {
+const Popup = () => { 
     // State variables for toggle states
     const [sendTranscriptToggle, setSendTranscriptToggle] = useState(true);
     const [user, setUser] = useState(undefined);
@@ -23,6 +23,10 @@ const Popup = () => {
         auth.onAuthStateChanged(user => {
             setUser(user && user.uid ? user : null);
         });
+
+        auth.onIdTokenChanged(user => {
+            setUser(user && user.uid ? user : null);
+          });
     }, []);
 
     // Effect to update Chrome storage when toggles change
@@ -42,6 +46,11 @@ const Popup = () => {
                 console.log(`SSO ended with an error: ${JSON.stringify(chrome.runtime.lastError)}`);
                 return;
             }
+            
+            // Store the token in chrome.storage.sync for future use
+            chrome.storage.sync.set({ 'googleAuthToken': token }, () => {
+                console.log('Token saved to chrome.storage.sync');
+            });
     
             const credential = GoogleAuthProvider.credential(null, token);
             signInWithCredential(auth, credential)
