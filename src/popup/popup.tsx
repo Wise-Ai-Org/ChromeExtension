@@ -1,30 +1,39 @@
 import React, { useState, useEffect } from "react";
+import { firebaseApp, auth } from './firebase_config';
+import {
+    getAuth,
+    signInWithCredential,
+    GoogleAuthProvider,
+    setPersistence,
+    browserLocalPersistence,
+} from 'firebase/auth';
 
-const Popup = () => {
+const Popup = () => { 
     // State variables for toggle states
     const [sendTranscriptToggle, setSendTranscriptToggle] = useState(true);
-    const [user, setUser] = useState({ displayName: "" }); // Set displayName to an empty string
-    const [loading, setLoading] = useState({ state: false, command: undefined });
+    const [user, setUser] = useState(undefined);
 
     // Effect to handle Chrome storage and update state
     useEffect(() => {
-        // Retrieve state from Chrome storage for sendTranscriptToggle, user, and loading
-        chrome.storage.sync.get(['sendTranscriptToggle', 'user', 'loading'], (result) => {
+        // Retrieve state from Chrome storage
+        chrome.storage.sync.get(['sendTranscriptToggle'], (result) => {
             setSendTranscriptToggle(result.sendTranscriptToggle ?? true);
-            setUser(result.user);
-            setLoading(result.loading);
         });
+
+        auth.onAuthStateChanged(user => {
+            setUser(user && user.uid ? user : null);
+        });
+
+        auth.onIdTokenChanged(user => {
+            setUser(user && user.uid ? user : null);
+          });
     }, []);
 
-    // Effect to update Chrome storage when toggles change or user changes
+    // Effect to update Chrome storage when toggles change
     useEffect(() => {
         // Save state to Chrome storage
-        chrome.storage.sync.set({ sendTranscriptToggle, user, loading }, () => {
-            if (chrome.runtime.lastError) {
-                console.error("Error saving state to Chrome storage:", chrome.runtime.lastError);
-            }
-        });
-    }, [sendTranscriptToggle, user, loading]);
+        chrome.storage.sync.set({ sendTranscriptToggle });
+    }, [sendTranscriptToggle]);
 
     // Function to handle toggle change
     const handleToggleChange = () => {
@@ -32,47 +41,57 @@ const Popup = () => {
     };
 
     const signInWithGoogle = () => {
-        setLoading({ state: true, command: "signIn" });
-        // Implement sign-in logic here
-    };
-
-    const signOut = () => {
-        // Implement sign-out logic if needed
-        setLoading({ state: true, command: "signOut" });
-    };
+        chrome.identity.getAuthToken({ interactive: true }, token => {
+            if (chrome.runtime.lastError || !token) {
+                console.log(`SSO ended with an error: ${JSON.stringify(chrome.runtime.lastError)}`);
+                return;
+            }
+            
+            // Store the token in chrome.storage.sync for future use
+            chrome.storage.sync.set({ 'googleAuthToken': token }, () => {
+                console.log('Token saved to chrome.storage.sync');
+            });
+    
+            const credential = GoogleAuthProvider.credential(null, token);
+            signInWithCredential(auth, credential)
+                .then(res => {
+                    console.log('signed in!');
+                })
+                .catch(err => {
+                    console.log(`SSO ended with an error: ${err}`);
+                });
+        });
+    };    
 
     return (
         <div className="popup">
             <img src="icon.png" alt="Inwise.ai logo" className="logo" />
             <div id="toggles">
                 {/* Toggle Switch */}
-                <label className={`toggle-label ${sendTranscriptToggle ? 'teal' : 'cyan'}`}>
-                    <span className="toggle-label-text">Send Transcript</span>
+                <label className={`relative inline-flex items-center me-5 cursor-pointer ${sendTranscriptToggle ? 'text-teal-500' : 'text-cyan-700'}`}>
+                    <span className="ms-3 text-sm text-black dark:text-gray-300">Send Transcript</span>
                     <input
                         type="checkbox"
                         value=""
-                        className="toggle-input"
+                        className="sr-only peer"
                         checked={sendTranscriptToggle}
                         onChange={handleToggleChange}
                     />
-                    <div className={`toggle-slider ${sendTranscriptToggle ? 'teal' : 'cyan'}`}></div>
+                    <div className={`w-11 h-6 rounded-full peer dark:bg-gray-700 peer-focus:ring-4 peer-focus:ring-teal-300 dark:peer-focus:ring-teal-800 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${sendTranscriptToggle ? 'peer-checked:bg-teal-500' : 'peer-checked:bg-cyan-700'}`}></div>
                 </label>
             </div>
-            {user && user.displayName ? (
+            {user ? (
                 <div>
                     <h1>Signed in as {user.displayName}.</h1>
-                    <button onClick={signOut}>Sign Out</button>
+                    <button onClick={() => auth.signOut()}>Sign Out</button>
                 </div>
             ) : (
-                <div>
-                    <button
-                        className={`sign-in-button ${loading && loading.state ? 'disabled' : ''}`}
-                        onClick={signInWithGoogle}
-                        disabled={loading && loading.state}
-                    >
-                        {loading && loading.state ? "Loading" : "Sign In with Google"}
-                    </button>
-                </div>
+                <button
+                    className="bg-cyan-700 text-white px-4 py-2 rounded-md mt-4"
+                    onClick={signInWithGoogle}
+                >
+                    Sign In with Google
+                </button>
             )}
         </div>
     );
