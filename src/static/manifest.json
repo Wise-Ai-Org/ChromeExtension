@@ -18,7 +18,6 @@
     },
     "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAocZqmeu3K7tqJ0DXLARjmy6N1kc5iZsC5KrxgaH0Acu/kfCw+I+Hh2NQsVKZ+jKxrUSFzEDzsRtMqfyCMesev3r9M4j5DoUcqhs9lAb/MPGMG4rU8aa2xpderhlRbZ0npWDpykrIZ1nVygm6wm740M8PyvMCOPDWlUOi79ojLpMZb25vTV7KK4rbnPwYFYzBZyBTVttbONe+bD8Ym8ZjJV8UAhGjupc7NSfFla3VN3XlVuhIGLS+7Vx9FHHAq+kn4fFHvV+RVwFu+G/xFRwGcdmECSPz7MYmIFw3EJaXJZVCXOQFi8wOuPbjNoi9gmLLS+QfWR8GoEGkL3ovdyVrVQIDAQAB",
     "permissions": [
-      "tabs",
       "storage",
       "identity"
     ],
