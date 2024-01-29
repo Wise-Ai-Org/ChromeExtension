@@ -159,16 +159,38 @@ async function sendDataToServer(data) {
 }
 
 // Receive the mutation data sent from the content script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
-    // Push the received data to the buffer array
-    if (!dataBuffer.hasOwnProperty(message['URL'])) {
-        dataBuffer[message['URL']] = [];
-    }
-    if(isSendData){
-        dataBuffer[message['URL']].push(message["Conversation"]);
+    if (message['action'] === "transmitTranscript") {
+        // Push the received data to the buffer array
+        if (!dataBuffer.hasOwnProperty(message['URL'])) {
+            dataBuffer[message['URL']] = [];
+        }
+
+        if (isSendData) {
+            dataBuffer[message['URL']].push(message["Conversation"]);
+        }
+    } else if (message['action'] === "consolidateTranscript") {
+        while (Object.keys(dataBuffer).length > 0) {
+            await new Promise(resolve => setTimeout(resolve, 100)); // Wait for 100ms
+        }
+
+        try {
+            const response = await fetch('https://inwise-node-functions.azurewebsites.net/api/orchestrators/orchestrate_meeting?code=7snQBIDVe8sVFmlWH3qQNJSM31A_saCuiyEiJ0vasmRoAzFuT2Oc9A==', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({"googleMeetUrl": message['URL']}),
+            });
+            console.log("Server confirmed receipt of data:", response);
+            console.log("The consolidation URL:", message['URL']);
+        } catch (error) {
+            console.error(error);
+        }
     }
 });
+
 
 // Function to queue data from dataBuffer to toBeSentStack after 30 seconds
 function queueDataAfterDelay() {
@@ -194,4 +216,4 @@ function queueDataAfterDelay() {
 setInterval(queueDataAfterDelay, 30000);
 
 // Set calander update to every 12 hours
-// setInterval(async () => {syncCalendar(accessToken, syncToken);}, 12 * 60 * 60 * 1000); // 12 hours in milliseconds
+setInterval(async () => {syncCalendar(accessToken, syncToken);}, 12 * 60 * 60 * 1000); // 12 hours in milliseconds

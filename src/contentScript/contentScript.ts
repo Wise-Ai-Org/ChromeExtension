@@ -5,6 +5,8 @@ let script: { speaker: string; script: string }[] = [];
 let last_span: string = '';
 let last_speaker: string = '';
 
+let user_name = '';
+
 // Create a MutationObserver instance for transcript changes
 const transcriptObserver = new MutationObserver((mutations) => {
   mutations.forEach((mutation) => {
@@ -43,12 +45,49 @@ const transcriptObserver = new MutationObserver((mutations) => {
           console.log({ "URL": document.URL, "Conversation": lastConvo });
           chrome.runtime.sendMessage({
             "URL": document.URL.includes('?') ? document.URL.split('?')[0] : document.URL,
-            "Conversation": lastConvo
+            "Conversation": lastConvo, "action": "transmitTranscript"
           });
         }
       }
     }
   });
+});
+
+// Create a MutationObserver instance for detecting when hang up button is clicked
+const meetingEndedObserver = new MutationObserver(() => {
+
+  const userNameXpath = '//div[@class="dwSJ2e"]';
+  const userNameXpathResult = document.evaluate(userNameXpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+  const userName = userNameXpathResult.singleNodeValue;
+
+  const hangUpButtonXpath = '//button[@jsname="CQylAd"]';
+  const result = document.evaluate(hangUpButtonXpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+  const hangUpButton = result.singleNodeValue;
+
+  if (userName && hangUpButton){
+    user_name = userName.textContent // do what you must
+    console.log('user name: ', user_name)
+    hangUpButton.addEventListener('click', e => { 
+      chrome.runtime.sendMessage({
+        "URL": document.URL.includes('?') ? document.URL.split('?')[0] : document.URL,
+        "Conversation": undefined, "action": "consolidateTranscript"
+      });
+      //chrome.runtime.sendMessage... or whatever
+    })
+    
+    // Add event listeners for beforeunload and hangUpButton click
+    window.addEventListener('beforeunload', e => { 
+      chrome.runtime.sendMessage({
+        "URL": document.URL.includes('?') ? document.URL.split('?')[0] : document.URL,
+        "Conversation": undefined, "action": "consolidateTranscript"
+      })
+    });
+    
+    hangUpButton.addEventListener('click', () => { 
+  // Your click event handling code here
+});
+    meetingEndedObserver.disconnect();
+  }
 });
 
 // Create a MutationObserver instance for detecting the meeting page
@@ -94,3 +133,4 @@ const config = { childList: true, subtree: true };
 
 // Start observing changes in the target node
 divObserver.observe(targetNode, config);
+meetingEndedObserver.observe(document, config);
