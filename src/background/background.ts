@@ -112,8 +112,6 @@ function getUserProfile(accessToken) {
         .then(response => response.json())
         .then(data => {
             // Log user profile information to the console
-            console.log('Email:', data.email);
-            console.log('Name:', data.name);
             userName = data.name;
             userEmail = data.email;
 
@@ -147,7 +145,6 @@ async function sendDataToServer(data) {
         
         // when successful response from the server
         setTimeout(() => {
-            console.log(toBeSentStack[data["URL"]]);
             delete toBeSentStack[data["URL"]]; // Remove the oldest item from the queue
             if (Object.keys(toBeSentStack).length > 0) {
                 // If there is pending data in the queue, send the next one immediately
