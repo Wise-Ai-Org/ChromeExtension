@@ -64,12 +64,12 @@ const Popup = () => {
     };    
 
     return (
-        <div className="popup">
-            <img src="icon.png" alt="Inwise.ai logo" className="logo" />
-            <div id="toggles">
+        <div className="popup ml-6 mr-6">
+            <img src="icon.png" alt="Inwise.ai logo" className="logo ms-3"/>
+            <div id="toggles" className="mt-4">
                 {/* Toggle Switch */}
-                <label className={`relative inline-flex items-center me-5 cursor-pointer ${sendTranscriptToggle ? 'text-teal-500' : 'text-cyan-700'}`}>
-                    <span className="ms-3 text-sm text-black dark:text-gray-300">Send Transcript</span>
+                <label className={`relative inline-flex items-center cursor-pointer ${sendTranscriptToggle ? 'text-teal-500' : 'text-cyan-700'} justify-between w-full`} style={{}}>
+                    <span className="text-base font-sans font-semibold" style={{color:"#2B3674"}}>Send Transcript</span>
                     <input
                         type="checkbox"
                         value=""
@@ -77,22 +77,26 @@ const Popup = () => {
                         checked={sendTranscriptToggle}
                         onChange={handleToggleChange}
                     />
-                    <div className={`w-11 h-6 rounded-full peer dark:bg-gray-700 peer-focus:ring-4 peer-focus:ring-teal-300 dark:peer-focus:ring-teal-800 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${sendTranscriptToggle ? 'peer-checked:bg-teal-500' : 'peer-checked:bg-cyan-700'}`}></div>
+                    <div className={`w-11 h-6 rounded-full peer bg-[#0F738C] peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${sendTranscriptToggle ? 'peer-checked:bg-[#35A99A]' : 'peer-checked:bg-[#0F738C]'} pl-[2px]`}>
+
+                    </div>
                 </label>
             </div>
-            {user ? (
-                <div>
-                    <h1>Signed in as {user.displayName}.</h1>
-                    <button onClick={() => auth.signOut()}>Sign Out</button>
-                </div>
-            ) : (
-                <button
-                    className="bg-cyan-700 text-white px-4 py-2 rounded-md mt-4"
-                    onClick={signInWithGoogle}
-                >
-                    Sign In with Google
-                </button>
-            )}
+            <div className="w-full flex justify-center">
+                {user ? (
+                    <div className="w-full my-4">
+                        <h1 className="text-sm font-sans text-center" style={{color:"#A3AED0"}}>Signed in as {user.displayName}.</h1>
+                        <button className="bg-[#35A99A] text-white px-4 py-2 rounded-2xl mt-[4px] w-full" onClick={() => auth.signOut()}>Sign Out</button>
+                    </div>
+                ) : (
+                    <button
+                        className="bg-[#0F738C] text-white px-4 py-2 rounded-2xl mt-4 w-full"
+                        onClick={signInWithGoogle}
+                    >
+                        Sign In with Google
+                    </button>
+                )}
+            </div>
         </div>
     );
 };
