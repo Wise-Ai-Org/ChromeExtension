@@ -56,6 +56,15 @@ async function syncCalendar(accessToken, syncToken) { // Change here: Added asyn
             apiUrl += `?syncToken=${encodeURIComponent(syncToken)}`;
         }
 
+        const today = new Date();
+        const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
+        const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
+
+        // Format the dates as RFC3339 strings as required by the API
+        const formattedStartDate = startDate.toISOString();
+        const formattedEndDate = endDate.toISOString();
+        apiUrl += `?timeMin=${formattedStartDate}&timeMax=${formattedEndDate}`;
+
         // Fetch calendar events using the API
         try { // Change here: Added try-catch
             const response = await fetch(apiUrl, {
