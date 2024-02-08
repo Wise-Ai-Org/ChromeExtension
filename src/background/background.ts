@@ -1,5 +1,3 @@
-import { useContext } from "react";
-
 /*
 The code below is for calendar integration.
 */
