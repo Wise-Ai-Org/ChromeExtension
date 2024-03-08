@@ -55,6 +55,15 @@ async function syncCalendar(accessToken, syncToken) { // Change here: Added asyn
         if (syncToken) {
             apiUrl += `?syncToken=${encodeURIComponent(syncToken)}`;
         }
+        const today = new Date();
+        const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
+        const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
+
+        // Format the dates as RFC3339 strings as required by the API
+        const formattedStartDate = startDate.toISOString();
+        const formattedEndDate = endDate.toISOString();
+
+        apiUrl += `?timeMin=${formattedStartDate}&timeMax=${formattedEndDate}`;
 
         const today = new Date();
         const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
@@ -81,7 +90,7 @@ async function syncCalendar(accessToken, syncToken) { // Change here: Added asyn
                 events: data.items
             };
 
-            const serverResponse = await fetch('https://inwise-node-functions.azurewebsites.net/api/dump_delta_calender?code=WLi2K62GK_RhcehvcqbfaoEtP8IhGKdWQ8jus09uDrHEAzFuYgZDSw==', {
+            const serverResponse = await fetch('https://inwise-node-functions.azurewebsites.net/api/orchestrators/calendar-orchestration?code=7snQBIDVe8sVFmlWH3qQNJSM31A_saCuiyEiJ0vasmRoAzFuT2Oc9A==', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
