@@ -65,7 +65,7 @@ const meetingEndedObserver = new MutationObserver(() => {
   const result = document.evaluate(hangUpButtonXpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
   const hangUpButton = result.singleNodeValue;
 
-  if (userName && hangUpButton){
+  if (user_name && hangUpButton){
     //user_name = userName.textContent // do what you must
     console.log('user name: ', user_name)
     hangUpButton.addEventListener('click', e => { 
@@ -99,6 +99,10 @@ const divObserver = new MutationObserver(() => {
   const ccButton = result.singleNodeValue;
 
   if (ccButton instanceof HTMLElement) {
+    // Disconnect the divObserver since it's no longer needed
+    divObserver.disconnect();
+    console.log('The divObserver was disconnected');
+
     // Click the closed caption button
     ccButton.click();
     console.log('ccButton found')
@@ -107,7 +111,6 @@ const divObserver = new MutationObserver(() => {
     const captionDivXpath = '//div[@class="iOzk7"]';
     const captionDivXpathResult = document.evaluate(captionDivXpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
     const captionDiv = captionDivXpathResult.singleNodeValue;
-
     user_name = captionDiv.parentNode.parentNode.parentNode.querySelector('.zWGUib').textContent
 
     // Configure MutationObserver to observe caption changes
@@ -118,9 +121,6 @@ const divObserver = new MutationObserver(() => {
       characterData: false,
     };
 
-    // Disconnect the divObserver since it's no longer needed
-    divObserver.disconnect();
-    console.log('The divObserver was disconnected');
     // Start observing transcript changes
     transcriptObserver.observe(captionDiv, config);
 
