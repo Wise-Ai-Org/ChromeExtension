@@ -190,6 +190,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             await new Promise(resolve => setTimeout(resolve, 100)); // Wait for 100ms
         }
 
+        console.log("Closed Window");
+
         try {
             const response = await fetch('https://inwise-node-functions.azurewebsites.net/api/orchestrators/orchestrate_meeting?code=7snQBIDVe8sVFmlWH3qQNJSM31A_saCuiyEiJ0vasmRoAzFuT2Oc9A==', {
                 method: 'POST',
@@ -231,4 +233,4 @@ function queueDataAfterDelay() {
 setInterval(queueDataAfterDelay, 30000);
 
 // Set calander update to every 12 hours
-setInterval(async () => {syncCalendar(accessToken, syncToken);}, 12 * 60 * 60 * 1000); // 12 hours in milliseconds
+setInterval(async () => {syncCalendar(accessToken, syncToken);}, 60 * 1000);//12 * 60 * 60 * 1000); // 12 hours in milliseconds

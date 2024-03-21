@@ -4,6 +4,7 @@ let script: { speaker: string; script: string }[] = [];
 // Initialize variables to keep track of the last span and speaker
 let last_span: string = '';
 let last_speaker: string = '';
+let eventHandledTranscriptConsolidate = false;
 
 let user_name = '';
 
@@ -14,8 +15,8 @@ const transcriptObserver = new MutationObserver((mutations) => {
     if (mutation.target instanceof Element && mutation.target.classList.contains('iTTPOb')) {
       if (mutation.addedNodes.length) {
         const newNodes = mutation.addedNodes;
-        const tempSpeaker: string | null = (newNodes[0]?.parentNode?.parentNode?.parentNode?.querySelector('.zs7s8d.jxFHg') as HTMLElement)?.textContent ?? null;
-        const speaker: string | null = tempSpeaker !== 'You' ? tempSpeaker : user_name;
+        const speaker: string | null = (newNodes[0]?.parentNode?.parentNode?.parentNode?.querySelector('.zs7s8d.jxFHg') as HTMLElement)?.textContent ?? null;
+        //const speaker: string | null = tempSpeaker !== 'You' ? tempSpeaker : user_name;
 
         if (speaker) {
           // Delay processing by 10 seconds to ensure the full transcript is loaded
@@ -65,10 +66,14 @@ const meetingEndedObserver = new MutationObserver(() => {
   const result = document.evaluate(hangUpButtonXpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
   const hangUpButton = result.singleNodeValue;
 
-  if (user_name && hangUpButton){
+  if (hangUpButton){
     //user_name = userName.textContent // do what you must
-    console.log('user name: ', user_name)
+    console.log('user name: ', user_name);
+
     hangUpButton.addEventListener('click', e => { 
+      if (eventHandledTranscriptConsolidate) return;
+      eventHandledTranscriptConsolidate = true;
+
       chrome.runtime.sendMessage({
         "URL": document.URL.includes('?') ? document.URL.split('?')[0] : document.URL,
         "Conversation": undefined, "action": "consolidateTranscript"
@@ -78,10 +83,13 @@ const meetingEndedObserver = new MutationObserver(() => {
     
     // Add event listeners for beforeunload and hangUpButton click
     window.addEventListener('beforeunload', e => { 
+      if (eventHandledTranscriptConsolidate) return;
+      eventHandledTranscriptConsolidate = true;
+
       chrome.runtime.sendMessage({
         "URL": document.URL.includes('?') ? document.URL.split('?')[0] : document.URL,
         "Conversation": undefined, "action": "consolidateTranscript"
-      })
+      });
     });
     
     hangUpButton.addEventListener('click', () => { 
@@ -111,7 +119,7 @@ const divObserver = new MutationObserver(() => {
     const captionDivXpath = '//div[@class="iOzk7"]';
     const captionDivXpathResult = document.evaluate(captionDivXpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
     const captionDiv = captionDivXpathResult.singleNodeValue;
-    user_name = captionDiv.parentNode.parentNode.parentNode.querySelector('.zWGUib').textContent
+    //user_name = captionDiv.parentNode.parentNode.parentNode.querySelector('.zWGUib').textContent
 
     // Configure MutationObserver to observe caption changes
     const config = {
