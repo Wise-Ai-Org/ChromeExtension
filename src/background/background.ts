@@ -41,38 +41,31 @@ async function performInitialSync() {
     // Make the initial API request to fetch all events if accessToken is available
     if (accessToken) {
         await getUserProfile(accessToken);
-        syncCalendar(accessToken, null); // Change here: Use await
+        console.log("First Sync");
+        //syncCalendar(accessToken); // Change here: Use await
     }
 }
 
 // Function to sync calendar events
-async function syncCalendar(accessToken, syncToken) { // Change here: Added async
+async function syncCalendar(accessToken) { // Change here: Added async
     // Proceed with synchronization only if accessToken is available
-    if (accessToken) {
+    if (accessToken && userName && userEmail) {
         let apiUrl = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
 
         // Append syncToken to the API URL if available
         if (syncToken) {
             apiUrl += `?syncToken=${encodeURIComponent(syncToken)}`;
+        }else{
+            const today = new Date();
+            const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
+            const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
+
+            // Format the dates as RFC3339 strings as required by the API
+            const formattedStartDate = startDate.toISOString();
+            const formattedEndDate = endDate.toISOString();
+
+            apiUrl += `?timeMin=${formattedStartDate}&timeMax=${formattedEndDate}`;
         }
-        const today = new Date();
-        const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
-        const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
-
-        // Format the dates as RFC3339 strings as required by the API
-        const formattedStartDate = startDate.toISOString();
-        const formattedEndDate = endDate.toISOString();
-
-        apiUrl += `?timeMin=${formattedStartDate}&timeMax=${formattedEndDate}`;
-
-        //const today = new Date();
-        //const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
-        //const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
-
-        // Format the dates as RFC3339 strings as required by the API
-        //const formattedStartDate = startDate.toISOString();
-        //const formattedEndDate = endDate.toISOString();
-        apiUrl += `?timeMin=${formattedStartDate}&timeMax=${formattedEndDate}`;
 
         // Fetch calendar events using the API
         try { // Change here: Added try-catch
@@ -82,7 +75,8 @@ async function syncCalendar(accessToken, syncToken) { // Change here: Added asyn
                 },
             });
             const data = await response.json();
-            console.log('Initial Sync Response:', data.items);
+            console.log('Sync Token:', syncToken);
+            console.log('Sync Response:', data);
 
             const postData = {
                 name: userName,
@@ -90,7 +84,7 @@ async function syncCalendar(accessToken, syncToken) { // Change here: Added asyn
                 events: data.items
             };
 
-            const serverResponse = await fetch('https://inwise-node-functions.azurewebsites.net/api/orchestrators/calendar-orchestration?code=7snQBIDVe8sVFmlWH3qQNJSM31A_saCuiyEiJ0vasmRoAzFuT2Oc9A==', {
+            const serverResponse = await fetch('https://inwise-node-functions.azurewebsites.net/api/dump_delta_calender?code=WLi2K62GK_RhcehvcqbfaoEtP8IhGKdWQ8jus09uDrHEAzFuYgZDSw==', {//fetch('https://inwise-node-functions.azurewebsites.net/api/orchestrators/calendar-orchestration?code=7snQBIDVe8sVFmlWH3qQNJSM31A_saCuiyEiJ0vasmRoAzFuT2Oc9A==', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -99,13 +93,16 @@ async function syncCalendar(accessToken, syncToken) { // Change here: Added asyn
             });
 
             console.log("Server confirmed receipt of data:", serverResponse);
-            console.log("The data:", data);
+            //console.log("The data:", data);
 
             // Extract and store the new syncToken for future use
             const newSyncToken = data.nextSyncToken;
+
             if (newSyncToken) {
                 chrome.storage.sync.set({ 'syncToken': newSyncToken });
             }
+            
+            syncToken = newSyncToken;
 
             // Handle the initial sync data as needed
         } catch (error) {
@@ -230,7 +227,7 @@ function queueDataAfterDelay() {
 }
 
 // Set an interval to queue data every 30 seconds
-setInterval(queueDataAfterDelay, 30000);
+setInterval(queueDataAfterDelay, 30 * 1000);
 
 // Set calander update to every 12 hours
-setInterval(async () => {syncCalendar(accessToken, syncToken);}, 60 * 1000);//12 * 60 * 60 * 1000); // 12 hours in milliseconds
+setInterval(async () => {syncCalendar(accessToken);}, 60 * 1000);//12 * 60 * 60 * 1000); // 12 hours in milliseconds
