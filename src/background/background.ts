@@ -101,7 +101,7 @@ async function syncCalendar(accessToken) { // Change here: Added async
                 events: data.items
             };
 
-            const serverResponse = await fetch('https://inwise-node-functions.azurewebsites.net/api/dump_delta_calender?code=WLi2K62GK_RhcehvcqbfaoEtP8IhGKdWQ8jus09uDrHEAzFuYgZDSw==', {//fetch('https://inwise-node-functions.azurewebsites.net/api/orchestrators/calendar-orchestration?code=7snQBIDVe8sVFmlWH3qQNJSM31A_saCuiyEiJ0vasmRoAzFuT2Oc9A==', {
+            const serverResponse = await fetch('https://inwise-node-functions.azurewebsites.net/api/orchestrators/calendar-orchestration?code=7snQBIDVe8sVFmlWH3qQNJSM31A_saCuiyEiJ0vasmRoAzFuT2Oc9A==', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
