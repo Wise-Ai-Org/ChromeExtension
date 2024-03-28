@@ -10,7 +10,8 @@ let userEmail = null;
 
 // Set the sendTranscriptToggle as true in chrome storage on installation
 chrome.runtime.onInstalled.addListener(() => {
-    chrome.storage.sync.set({ sendTranscriptToggle: true });
+    chrome.storage.sync.set({ sendTranscriptToggle: true, 
+        accessToken: undefined, userName: null, userEmail: null });
 });
 
 // Log the changes in the status of the variable in the chrome storage
@@ -20,7 +21,6 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
         if (key === 'sendTranscriptToggle') {
             chrome.storage.sync.get('sendTranscriptToggle', (data) => {
                 isSendData = data.sendTranscriptToggle;
-                console.log('sendTranscriptToggle value changed from ' + oldValue + ' to ' + newValue);
             });
         }
 
@@ -29,7 +29,6 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
             console.log("User Changed");
             chrome.storage.sync.get('googleAuthToken', (data) => {
                 accessToken = newValue;
-                console.log('googleAuthToken value changed from ' + oldValue + ' to ' + newValue);
                 performInitialSync();
             });
         }
@@ -42,12 +41,30 @@ async function performInitialSync() {
     if (accessToken) {
         await getUserProfile(accessToken);
         console.log("First Sync");
-        //syncCalendar(accessToken); // Change here: Use await
+        syncCalendar(accessToken); // Change here: Use await
     }
 }
 
 // Function to sync calendar events
 async function syncCalendar(accessToken) { // Change here: Added async
+    // Check if accessToken is null or undefined
+    if (accessToken === null || accessToken === undefined) {
+        chrome.storage.sync.get(['userName', 'userEmail', 'googleAuthToken', 'syncToken'], function(data) {
+            userName = data.userName;
+            userEmail = data.userEmail;
+            accessToken = data.googleAuthToken;
+            syncToken = data.syncToken;
+            // Use the accessToken value here
+            console.log('Access Token:', accessToken);
+            console.log('User Name:', userName);
+            console.log('User Email:', userEmail);
+
+            if (accessToken !== null && accessToken !== undefined){
+                syncCalendar(accessToken);
+            }
+        });
+    }
+    
     // Proceed with synchronization only if accessToken is available
     if (accessToken && userName && userEmail) {
         let apiUrl = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
@@ -129,6 +146,9 @@ function getUserProfile(accessToken) {
             // Log user profile information to the console
             userName = data.name;
             userEmail = data.email;
+
+            chrome.storage.sync.set({ 'userName': userName });
+            chrome.storage.sync.set({ 'userEmail': userEmail });
 
             // Handle the profile information as needed
         }).catch(error => console.error('Error:', error));
@@ -230,4 +250,4 @@ function queueDataAfterDelay() {
 setInterval(queueDataAfterDelay, 30 * 1000);
 
 // Set calander update to every 12 hours
-setInterval(async () => {syncCalendar(accessToken);}, 60 * 1000);//12 * 60 * 60 * 1000); // 12 hours in milliseconds
+setInterval(async () => {syncCalendar(accessToken);}, 60 * 60 * 1000);//12 * 60 * 60 * 1000); // 12 hours in milliseconds
