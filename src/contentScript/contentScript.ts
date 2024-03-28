@@ -4,6 +4,7 @@ let script: { speaker: string; script: string }[] = [];
 // Initialize variables to keep track of the last span and speaker
 let last_span: string = '';
 let last_speaker: string = '';
+let eventHandledTranscriptConsolidate = false;
 
 let user_name = '';
 
@@ -15,6 +16,7 @@ const transcriptObserver = new MutationObserver((mutations) => {
       if (mutation.addedNodes.length) {
         const newNodes = mutation.addedNodes;
         const speaker: string | null = (newNodes[0]?.parentNode?.parentNode?.parentNode?.querySelector('.zs7s8d.jxFHg') as HTMLElement)?.textContent ?? null;
+        //const speaker: string | null = tempSpeaker !== 'You' ? tempSpeaker : user_name;
 
         if (speaker) {
           // Delay processing by 10 seconds to ensure the full transcript is loaded
@@ -56,18 +58,22 @@ const transcriptObserver = new MutationObserver((mutations) => {
 // Create a MutationObserver instance for detecting when hang up button is clicked
 const meetingEndedObserver = new MutationObserver(() => {
 
-  const userNameXpath = '//div[@class="dwSJ2e"]';
-  const userNameXpathResult = document.evaluate(userNameXpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-  const userName = userNameXpathResult.singleNodeValue;
+  //const userNameXpath = '//div[@class="dwSJ2e"]';
+  //const userNameXpathResult = document.evaluate(userNameXpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+  //const userName = userNameXpathResult.singleNodeValue;
 
   const hangUpButtonXpath = '//button[@jsname="CQylAd"]';
   const result = document.evaluate(hangUpButtonXpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
   const hangUpButton = result.singleNodeValue;
 
-  if (userName && hangUpButton){
-    user_name = userName.textContent // do what you must
-    console.log('user name: ', user_name)
+  if (hangUpButton){
+    //user_name = userName.textContent // do what you must
+    console.log('user name: ', user_name);
+
     hangUpButton.addEventListener('click', e => { 
+      if (eventHandledTranscriptConsolidate) return;
+      eventHandledTranscriptConsolidate = true;
+
       chrome.runtime.sendMessage({
         "URL": document.URL.includes('?') ? document.URL.split('?')[0] : document.URL,
         "Conversation": undefined, "action": "consolidateTranscript"
@@ -77,10 +83,13 @@ const meetingEndedObserver = new MutationObserver(() => {
     
     // Add event listeners for beforeunload and hangUpButton click
     window.addEventListener('beforeunload', e => { 
+      if (eventHandledTranscriptConsolidate) return;
+      eventHandledTranscriptConsolidate = true;
+
       chrome.runtime.sendMessage({
         "URL": document.URL.includes('?') ? document.URL.split('?')[0] : document.URL,
         "Conversation": undefined, "action": "consolidateTranscript"
-      })
+      });
     });
     
     hangUpButton.addEventListener('click', () => { 
@@ -98,6 +107,10 @@ const divObserver = new MutationObserver(() => {
   const ccButton = result.singleNodeValue;
 
   if (ccButton instanceof HTMLElement) {
+    // Disconnect the divObserver since it's no longer needed
+    divObserver.disconnect();
+    console.log('The divObserver was disconnected');
+
     // Click the closed caption button
     ccButton.click();
     console.log('ccButton found')
@@ -106,6 +119,7 @@ const divObserver = new MutationObserver(() => {
     const captionDivXpath = '//div[@class="iOzk7"]';
     const captionDivXpathResult = document.evaluate(captionDivXpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
     const captionDiv = captionDivXpathResult.singleNodeValue;
+    //user_name = captionDiv.parentNode.parentNode.parentNode.querySelector('.zWGUib').textContent
 
     // Configure MutationObserver to observe caption changes
     const config = {
@@ -115,9 +129,6 @@ const divObserver = new MutationObserver(() => {
       characterData: false,
     };
 
-    // Disconnect the divObserver since it's no longer needed
-    divObserver.disconnect();
-    console.log('The divObserver was disconnected');
     // Start observing transcript changes
     transcriptObserver.observe(captionDiv, config);
 

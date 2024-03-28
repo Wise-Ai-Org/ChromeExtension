@@ -1,0 +1,56 @@
+{
+    "kind": "calendar#events",
+    "etag": "\"p32ke54t2jiaoa0o\"",
+    "summary": "manojup3@gmail.com",
+    "description": "",
+    "updated": "2024-03-27T19:53:55.145Z",
+    "timeZone": "America/New_York",
+    "accessRole": "owner",
+    "defaultReminders": [
+        {
+            "method": "popup",
+            "minutes": 30
+        }
+    ],
+    "nextSyncToken": "CKjik6KclYUDEKjik6KclYUDGAUgmfaApwIomfaApwI=",
+    "items": [
+        {
+            "kind": "calendar#event",
+            "etag": "\"3423138455410000\"",
+            "id": "1rnmt84ud382ltp2e1u24fu89g",
+            "status": "cancelled"
+        },
+        {
+            "kind": "calendar#event",
+            "etag": "\"3423138470290000\"",
+            "id": "2ehinph2na1jekc5tjk86vrihr",
+            "status": "confirmed",
+            "htmlLink": "https://www.google.com/calendar/event?eid=MmVoaW5waDJugbWFub2p1cGFkaHlheWExM0Bt",
+            "created": "2024-03-27T19:53:55.000Z",
+            "updated": "2024-03-27T19:53:55.145Z",
+            "summary": "new test",
+            "creator": {
+                "email": "manojup3@gmail.com",
+                "self": true
+            },
+            "organizer": {
+                "email": "manojup3@gmail.com",
+                "self": true
+            },
+            "start": {
+                "dateTime": "2024-03-28T15:30:00-04:00",
+                "timeZone": "America/New_York"
+            },
+            "end": {
+                "dateTime": "2024-03-28T16:30:00-04:00",
+                "timeZone": "America/New_York"
+            },
+            "iCalUID": "2ehinph2na1jekc5tjk86vrihr@google.com",
+            "sequence": 0,
+            "reminders": {
+                "useDefault": true
+            },
+            "eventType": "default"
+        }
+    ]
+}
