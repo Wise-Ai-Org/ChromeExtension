@@ -11,7 +11,23 @@ let userEmail = null;
 // Set the sendTranscriptToggle as true in chrome storage on installation
 chrome.runtime.onInstalled.addListener(() => {
     chrome.storage.sync.set({ sendTranscriptToggle: true, 
-        accessToken: undefined, userName: null, userEmail: null });
+        googleAuthToken: undefined, userName: null, userEmail: null });
+});
+
+// Retrieve data from chrome.storage.sync when Chrome starts
+chrome.runtime.onStartup.addListener(() => {
+    chrome.storage.sync.get(['sendTranscriptToggle', 'userName', 'userEmail', 'googleAuthToken', 'syncToken'], function(data) {
+        userName = data.userName;
+        userEmail = data.userEmail;
+        accessToken = data.googleAuthToken;
+        syncToken = data.syncToken;
+        isSendData = data.sendTranscriptToggle;
+        console.log('sendTranscriptToggle', userName);
+        console.log('userName', userName);
+        console.log('userEmail', userEmail);
+        console.log('googleAuthToken', accessToken);
+        console.log('syncToken', syncToken);
+    });
 });
 
 // Log the changes in the status of the variable in the chrome storage
@@ -41,6 +57,7 @@ async function performInitialSync() {
     if (accessToken) {
         await getUserProfile(accessToken);
         console.log("First Sync");
+        console.log(accessToken);
         syncCalendar(accessToken); // Change here: Use await
     }
 }
@@ -110,7 +127,7 @@ async function syncCalendar(accessToken) { // Change here: Added async
             });
 
             console.log("Server confirmed receipt of data:", serverResponse);
-            //console.log("The data:", data);
+            console.log("The data:", data);
 
             // Extract and store the new syncToken for future use
             const newSyncToken = data.nextSyncToken;
@@ -174,7 +191,8 @@ async function sendDataToServer(data) {
                 body: JSON.stringify(data),
             });
         console.log("Server confirmed receipt of data:", response);
-        console.log("The data:", data);} catch (error) {
+        //console.log("The data:", data);
+    } catch (error) {
         console.error(error);
         }
         
@@ -198,9 +216,13 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         if (!dataBuffer.hasOwnProperty(message['URL'])) {
             dataBuffer[message['URL']] = [];
         }
-
+    
         if (isSendData) {
-            dataBuffer[message['URL']].push(message["Conversation"]);
+            let conversation = message["Conversation"];
+            if (conversation['speaker'] === "You" && userName !== null) {
+                conversation['speaker'] = userName;
+            }
+            dataBuffer[message['URL']].push(conversation);
         }
     } else if (message['action'] === "consolidateTranscript") {
         while (Object.keys(dataBuffer).length > 0) {
@@ -250,4 +272,4 @@ function queueDataAfterDelay() {
 setInterval(queueDataAfterDelay, 30 * 1000);
 
 // Set calander update to every 12 hours
-setInterval(async () => {syncCalendar(accessToken);}, 60 * 60 * 1000);//12 * 60 * 60 * 1000); // 12 hours in milliseconds
+setInterval(async () => {syncCalendar(accessToken);}, 20 * 60 * 1000);//12 * 60 * 60 * 1000); // 12 hours in milliseconds

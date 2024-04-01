@@ -56,6 +56,14 @@ const Popup = () => {
             signInWithCredential(auth, credential)
                 .then(res => {
                     console.log('signed in!');
+
+                    // Once signed in, get the ID token and send it to your backend
+                    auth.currentUser.getIdToken(/* forceRefresh */ true)
+                    .then(idToken => {
+                        console.log('ID token:',idToken);
+                    }).catch(error => {
+                        console.error('Error getting ID token:', error);
+                    });
                 })
                 .catch(err => {
                     console.log(`SSO ended with an error: ${err}`);
